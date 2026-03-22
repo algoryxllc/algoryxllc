@@ -282,12 +282,12 @@
       <div class="contact-detail"><div class="contact-detail-icon">🛒</div><div><h4>Also Available On</h4><p>Amazon — eBay</p></div></div>
     </div>
     <div>
-      <form class="contact-form" id="contact-form">
+      <form class="contact-form" id="contact-form" onsubmit="submitForm(event)">
         <div class="form-group"><label>Full Name</label><input type="text" name="name" placeholder="Your name" required/></div>
         <div class="form-group"><label>Email Address</label><input type="email" name="email" placeholder="your@email.com" required/></div>
         <div class="form-group"><label>Subject</label><select name="subject"><option>Get a Quote</option><option>Product Inquiry</option><option>Order Support</option><option>Business Account</option><option>Other</option></select></div>
         <div class="form-group"><label>Message</label><textarea name="message" placeholder="Tell us about your requirements..." required></textarea></div>
-        <button type="button" class="submit-btn" onclick="submitForm()">SEND MESSAGE</button>
+        <button type="submit" class="submit-btn" id="submit-btn">SEND MESSAGE</button>
         <div class="form-success" id="form-success">✅ Message sent! We'll get back to you soon.</div>
       </form>
     </div>
@@ -411,39 +411,55 @@
 </div>
 
 <script>
-  async function submitForm() {
-    const form = document.getElementById('contact-form');
-    const btn = form.querySelector('.submit-btn');
-    const success = document.getElementById('form-success');
-    const name = form.querySelector('[name=name]').value;
-    const email = form.querySelector('[name=email]').value;
-    const message = form.querySelector('[name=message]').value;
-    if (!name || !email || !message) { alert('Please fill all required fields.'); return; }
-    btn.textContent = 'SENDING...';
-    btn.disabled = true;
-    try {
-      await fetch('https://formspree.io/f/xgonkqej', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ name, email, subject: form.querySelector('[name=subject]').value, message })
-      });
-      success.style.display = 'block';
-      form.reset();
-      btn.textContent = 'SEND MESSAGE';
-      btn.disabled = false;
-    } catch(e) {
-      success.style.display = 'block';
-      success.textContent = '✅ Message sent! We will get back to you soon.';
-      btn.textContent = 'SEND MESSAGE';
-      btn.disabled = false;
-    }
-  }
-
+  // FAQ accordion
   document.querySelectorAll('.faq-item').forEach(item => {
     item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
   });
 
+  // Show subpage (terms, shipping, etc)
   function showPage(page) {
     document.getElementById('main-site').style.display = 'none';
     document.querySelectorAll('.subpage').forEach(p => p.classList.remove('active'));
-    document.getElementById('pa
+    document.getElementById('page-' + page).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // Show main site
+  function showMain() {
+    document.getElementById('main-site').style.display = 'block';
+    document.querySelectorAll('.subpage').forEach(p => p.classList.remove('active'));
+    window.scrollTo(0, 0);
+  }
+
+  // Contact form submission
+  async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const success = document.getElementById('form-success');
+    const form = document.getElementById('contact-form');
+    btn.textContent = 'SENDING...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('https://formspree.io/f/xgonkqej', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name: form.querySelector('[name=name]').value,
+          email: form.querySelector('[name=email]').value,
+          subject: form.querySelector('[name=subject]').value,
+          message: form.querySelector('[name=message]').value
+        })
+      });
+      success.style.display = 'block';
+      success.textContent = '✅ Message sent! We will get back to you soon.';
+      form.reset();
+    } catch(err) {
+      success.style.display = 'block';
+      success.textContent = '✅ Message received! We will get back to you soon.';
+    }
+    btn.textContent = 'SEND MESSAGE';
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>
